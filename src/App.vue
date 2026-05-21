@@ -1,7 +1,8 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue'
-import { Archive, Download, ImageOff, Laptop, MonitorDown, MousePointer2, Search } from 'lucide-vue-next'
+import { Archive, Download, ImageOff, MousePointer2, Search } from 'lucide-vue-next'
 import cursorCatalog from 'virtual:cursor-catalog'
+import PlatformIcon from './components/PlatformIcon.vue'
 import type { CursorPackage, CursorPlatform, CursorSample } from './types/cursor'
 
 type PlatformFilter = CursorPlatform | 'all'
@@ -98,6 +99,8 @@ function formatFormats(cursorPackage: CursorPackage): string {
             :class="{ active: activePlatform === item.id }"
             @click="activePlatform = item.id"
           >
+            <Archive v-if="item.id === 'all'" :size="16" aria-hidden="true" />
+            <PlatformIcon v-else :platform="item.id" :size="16" />
             {{ item.label }}
           </button>
         </div>
@@ -110,11 +113,11 @@ function formatFormats(cursorPackage: CursorPackage): string {
         <span>{{ stats.total }} 个包</span>
       </div>
       <div>
-        <MonitorDown :size="18" />
+        <PlatformIcon platform="windows" :size="18" />
         <span>{{ stats.windows }} Windows</span>
       </div>
       <div>
-        <Laptop :size="18" />
+        <PlatformIcon platform="linux" :size="18" />
         <span>{{ stats.linux }} Linux</span>
       </div>
     </section>

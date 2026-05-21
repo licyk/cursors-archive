@@ -154,7 +154,11 @@ h1 {
 }
 
 .segmented button {
+  display: flex;
   min-height: 34px;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
   padding: 0 12px;
   color: var(--muted);
   background: transparent;
@@ -185,6 +189,28 @@ h1 {
   background: var(--surface);
   border: 1px solid var(--line);
   border-radius: 8px;
+}
+
+.platform-logo {
+  flex: 0 0 auto;
+}
+
+.platform-logo-windows path {
+  fill: #0078d4;
+}
+
+.platform-logo-linux .tux-body,
+.platform-logo-linux .tux-eye {
+  fill: #111820;
+}
+
+.platform-logo-linux .tux-belly {
+  fill: #ffffff;
+}
+
+.platform-logo-linux .tux-beak,
+.platform-logo-linux .tux-foot {
+  fill: #f2a20c;
 }
 
 .catalog-grid {
