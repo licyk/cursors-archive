@@ -44,6 +44,11 @@ a {
   color: inherit;
 }
 
+:where(button, a, summary, input):focus-visible {
+  outline: 3px solid rgba(20, 108, 101, 0.28);
+  outline-offset: 3px;
+}
+
 img {
   display: block;
 }
@@ -69,6 +74,16 @@ img {
   padding: 16px 0 18px;
   background: color-mix(in srgb, var(--bg) 92%, transparent);
   backdrop-filter: blur(14px);
+  opacity: 0;
+  transform: translateY(-10px);
+  transition:
+    opacity 360ms ease,
+    transform 360ms ease;
+}
+
+.shell.is-ready .toolbar {
+  opacity: 1;
+  transform: translateY(0);
 }
 
 .brand {
@@ -87,6 +102,14 @@ img {
   background: var(--accent-soft);
   border: 1px solid var(--line-strong);
   border-radius: 8px;
+  transition:
+    background-color 180ms ease,
+    border-color 180ms ease,
+    transform 180ms ease;
+}
+
+.brand:hover .brand-mark {
+  transform: translateY(-1px) rotate(-2deg);
 }
 
 h1,
@@ -134,6 +157,11 @@ h1 {
   border: 1px solid var(--line);
   border-radius: 8px;
   cursor: pointer;
+  transition:
+    border-color 180ms ease,
+    box-shadow 180ms ease,
+    transform 180ms ease,
+    color 180ms ease;
 }
 
 .usage-menu summary::-webkit-details-marker {
@@ -144,6 +172,7 @@ h1 {
 .usage-menu summary:hover {
   border-color: var(--accent);
   box-shadow: 0 0 0 3px rgba(20, 108, 101, 0.12);
+  transform: translateY(-1px);
 }
 
 .usage-panel {
@@ -159,6 +188,11 @@ h1 {
   border: 1px solid var(--line);
   border-radius: 8px;
   box-shadow: var(--shadow);
+  transform-origin: top right;
+}
+
+.usage-menu[open] .usage-panel {
+  animation: panel-in 180ms ease-out both;
 }
 
 .usage-panel h2 {
@@ -194,6 +228,14 @@ h1 {
   color: var(--accent-strong);
   font-weight: 700;
   text-decoration: none;
+  transition:
+    color 180ms ease,
+    transform 180ms ease;
+}
+
+.usage-panel a:hover {
+  color: var(--accent);
+  transform: translateX(2px);
 }
 
 .github-logo {
@@ -211,6 +253,14 @@ h1 {
   background: var(--surface);
   border: 1px solid var(--line);
   border-radius: 8px;
+  transition:
+    border-color 180ms ease,
+    box-shadow 180ms ease,
+    transform 180ms ease;
+}
+
+.search-field:hover {
+  transform: translateY(-1px);
 }
 
 .search-field:focus-within {
@@ -228,6 +278,7 @@ h1 {
 }
 
 .segmented {
+  position: relative;
   display: grid;
   grid-template-columns: repeat(3, minmax(74px, 1fr));
   gap: 4px;
@@ -237,7 +288,36 @@ h1 {
   border-radius: 8px;
 }
 
+.segmented::before {
+  position: absolute;
+  top: 4px;
+  bottom: 4px;
+  left: 4px;
+  z-index: 0;
+  width: calc((100% - 16px) / 3);
+  content: '';
+  background: var(--surface);
+  border: 1px solid rgba(183, 196, 190, 0.72);
+  border-radius: 6px;
+  box-shadow: 0 3px 12px rgba(31, 37, 40, 0.08);
+  transition: transform 220ms cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+.segmented.active-0::before {
+  transform: translateX(0);
+}
+
+.segmented.active-1::before {
+  transform: translateX(calc(100% + 4px));
+}
+
+.segmented.active-2::before {
+  transform: translateX(calc(200% + 8px));
+}
+
 .segmented button {
+  position: relative;
+  z-index: 1;
   display: flex;
   min-height: 34px;
   align-items: center;
@@ -248,12 +328,22 @@ h1 {
   background: transparent;
   border: 0;
   border-radius: 6px;
+  transition:
+    color 180ms ease,
+    transform 180ms ease;
+}
+
+.segmented button:hover {
+  color: var(--accent-strong);
+  transform: translateY(-1px);
+}
+
+.segmented button:active {
+  transform: translateY(0) scale(0.98);
 }
 
 .segmented button.active {
   color: var(--accent-strong);
-  background: var(--surface);
-  box-shadow: 0 3px 12px rgba(31, 37, 40, 0.08);
 }
 
 .stats-row {
@@ -261,6 +351,31 @@ h1 {
   grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 10px;
   margin: 6px 0 22px;
+}
+
+.stats-row,
+.cursor-card,
+.empty-state {
+  opacity: 0;
+  transform: translateY(16px);
+  transition:
+    opacity 420ms ease,
+    transform 420ms cubic-bezier(0.2, 0.8, 0.2, 1);
+  transition-delay: var(--reveal-delay, 0ms);
+}
+
+.stats-row:not(.is-visible),
+.cursor-card:not(.is-visible),
+.empty-state:not(.is-visible),
+.shell:not(.is-ready) .toolbar {
+  will-change: opacity, transform;
+}
+
+.stats-row.is-visible,
+.cursor-card.is-visible,
+.empty-state.is-visible {
+  opacity: 1;
+  transform: translateY(0);
 }
 
 .stats-row > div {
@@ -273,6 +388,16 @@ h1 {
   background: var(--surface);
   border: 1px solid var(--line);
   border-radius: 8px;
+  transition:
+    border-color 180ms ease,
+    box-shadow 180ms ease,
+    transform 180ms ease;
+}
+
+.stats-row > div:hover {
+  border-color: var(--line-strong);
+  box-shadow: 0 10px 24px rgba(31, 37, 40, 0.07);
+  transform: translateY(-1px);
 }
 
 .platform-logo {
@@ -302,6 +427,17 @@ h1 {
   border: 1px solid var(--line);
   border-radius: 8px;
   box-shadow: var(--shadow);
+  transition:
+    opacity 420ms ease,
+    transform 420ms cubic-bezier(0.2, 0.8, 0.2, 1),
+    border-color 180ms ease,
+    box-shadow 180ms ease;
+}
+
+.cursor-card.is-visible:hover {
+  border-color: var(--line-strong);
+  box-shadow: 0 24px 58px rgba(31, 37, 40, 0.12);
+  transform: translateY(-3px);
 }
 
 .preview-panel {
@@ -327,11 +463,16 @@ h1 {
   border-right: 1px solid var(--line);
 }
 
-.preview-panel img {
+.preview-panel .lazy-image {
+  width: 72px;
+  height: 72px;
+}
+
+.preview-panel .lazy-image img {
   width: auto;
   height: auto;
-  max-width: 72px;
-  max-height: 72px;
+  max-width: 100%;
+  max-height: 100%;
   object-fit: contain;
   filter: drop-shadow(0 10px 18px rgba(31, 37, 40, 0.18));
 }
@@ -438,12 +579,76 @@ h2 {
   border-radius: 8px;
 }
 
-.sample-image img {
+.sample-image .lazy-image {
+  width: 28px;
+  height: 28px;
+}
+
+.sample-image .lazy-image img {
   width: auto;
   height: auto;
-  max-width: 28px;
-  max-height: 28px;
+  max-width: 100%;
+  max-height: 100%;
   object-fit: contain;
+}
+
+.lazy-image {
+  position: relative;
+  display: grid;
+  aspect-ratio: var(--lazy-aspect);
+  place-items: center;
+  overflow: hidden;
+  color: var(--muted);
+  border-radius: 8px;
+}
+
+.lazy-image img {
+  position: relative;
+  z-index: 2;
+  opacity: 0;
+  transform: scale(0.96);
+  transition:
+    opacity 220ms ease,
+    transform 220ms ease;
+}
+
+.lazy-image.is-loaded img {
+  opacity: 1;
+  transform: scale(1);
+}
+
+.lazy-placeholder,
+.lazy-error {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  border: 1px solid rgba(183, 196, 190, 0.8);
+  border-radius: inherit;
+}
+
+.lazy-placeholder {
+  overflow: hidden;
+  background: rgba(255, 255, 255, 0.62);
+}
+
+.lazy-placeholder::after {
+  position: absolute;
+  inset: 0;
+  content: '';
+  background: linear-gradient(
+    110deg,
+    transparent 0%,
+    rgba(255, 255, 255, 0.72) 42%,
+    transparent 78%
+  );
+  transform: translateX(-100%);
+  animation: lazy-shimmer 1300ms ease-in-out infinite;
+}
+
+.lazy-error {
+  background: rgba(255, 255, 255, 0.7);
+  border-style: dashed;
 }
 
 figcaption {
@@ -484,10 +689,21 @@ figcaption small {
   text-decoration: none;
   background: var(--accent-strong);
   border-radius: 8px;
+  box-shadow: 0 8px 18px rgba(12, 79, 85, 0.18);
+  transition:
+    background-color 180ms ease,
+    box-shadow 180ms ease,
+    transform 180ms ease;
 }
 
 .download-link:hover {
   background: var(--accent);
+  box-shadow: 0 12px 24px rgba(12, 79, 85, 0.24);
+  transform: translateY(-2px);
+}
+
+.download-link:active {
+  transform: translateY(0) scale(0.98);
 }
 
 .empty-state {
@@ -496,6 +712,24 @@ figcaption small {
   place-items: center;
   gap: 8px;
   color: var(--muted);
+}
+
+@keyframes panel-in {
+  from {
+    opacity: 0;
+    transform: translateY(-6px) scale(0.98);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes lazy-shimmer {
+  to {
+    transform: translateX(100%);
+  }
 }
 
 .sr-only {
@@ -547,5 +781,34 @@ figcaption small {
 
   .sample-strip {
     grid-template-columns: repeat(4, minmax(48px, 1fr));
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+
+  .toolbar,
+  .stats-row,
+  .cursor-card,
+  .empty-state,
+  .lazy-image img {
+    opacity: 1;
+    transform: none;
+  }
+
+  .cursor-card.is-visible:hover,
+  .download-link:hover,
+  .segmented button:hover,
+  .usage-menu summary:hover,
+  .search-field:hover,
+  .stats-row > div:hover {
+    transform: none;
   }
 }

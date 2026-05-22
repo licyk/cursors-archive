@@ -1,16 +1,22 @@
 <script setup lang="ts">
-import { computed, ref } from 'vue'
+import { computed, onMounted, ref } from 'vue'
+import type { Directive } from 'vue'
 import { Icon } from '@iconify/vue'
 import githubIcon from '@iconify-icons/simple-icons/github'
 import { Archive, CircleHelp, Download, ImageOff, MousePointer2, Search } from 'lucide-vue-next'
 import cursorCatalog from 'virtual:cursor-catalog'
+import LazyImage from './components/LazyImage.vue'
 import PlatformIcon from './components/PlatformIcon.vue'
 import type { CursorPackage, CursorPlatform, CursorSample } from './types/cursor'
 
 type PlatformFilter = CursorPlatform | 'all'
+type RevealElement = HTMLElement & {
+  __cursorRevealCleanup?: () => void
+}
 
 const query = ref('')
 const activePlatform = ref<PlatformFilter>('all')
+const isReady = ref(false)
 
 const packages = cursorCatalog as CursorPackage[]
 const platformFilters: Array<{ id: PlatformFilter; label: string }> = [
@@ -33,6 +39,10 @@ const filteredPackages = computed(() => {
     return matchesPlatform && matchesKeyword
   })
 })
+
+const activePlatformIndex = computed(() =>
+  platformFilters.findIndex((item) => item.id === activePlatform.value),
+)
 
 const stats = computed(() => ({
   total: packages.length,
@@ -71,10 +81,54 @@ function formatSize(bytes: number): string {
 function formatFormats(cursorPackage: CursorPackage): string {
   return cursorPackage.formats.length > 0 ? cursorPackage.formats.join(' / ') : 'unknown'
 }
+
+const vReveal: Directive<RevealElement, number | undefined> = {
+  mounted(element, binding) {
+    const delay = Number(binding.value ?? 0)
+    element.style.setProperty('--reveal-delay', `${delay}ms`)
+
+    if (
+      typeof window === 'undefined' ||
+      !('IntersectionObserver' in window) ||
+      window.matchMedia('(prefers-reduced-motion: reduce)').matches
+    ) {
+      element.classList.add('is-visible')
+      return
+    }
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (!entries.some((entry) => entry.isIntersecting)) {
+          return
+        }
+
+        element.classList.add('is-visible')
+        observer.disconnect()
+        element.__cursorRevealCleanup = undefined
+      },
+      {
+        rootMargin: '0px 0px -8% 0px',
+        threshold: 0.1,
+      },
+    )
+
+    observer.observe(element)
+    element.__cursorRevealCleanup = () => observer.disconnect()
+  },
+  beforeUnmount(element) {
+    element.__cursorRevealCleanup?.()
+  },
+}
+
+onMounted(() => {
+  requestAnimationFrame(() => {
+    isReady.value = true
+  })
+})
 </script>
 
 <template>
-  <main class="shell">
+  <main class="shell" :class="{ 'is-ready': isReady }">
     <header class="toolbar">
       <div class="brand">
         <span class="brand-mark" aria-hidden="true">
@@ -116,7 +170,7 @@ function formatFormats(cursorPackage: CursorPackage): string {
           <input v-model="query" type="search" placeholder="搜索名称或格式" />
         </label>
 
-        <div class="segmented" aria-label="平台筛选">
+        <div class="segmented" :class="`active-${activePlatformIndex}`" aria-label="平台筛选">
           <button
             v-for="item in platformFilters"
             :key="item.id"
@@ -132,7 +186,7 @@ function formatFormats(cursorPackage: CursorPackage): string {
       </div>
     </header>
 
-    <section class="stats-row" aria-label="目录统计">
+    <section v-reveal="80" class="stats-row" aria-label="目录统计">
       <div>
         <Archive :size="18" />
         <span>{{ stats.total }} 个包</span>
@@ -148,14 +202,20 @@ function formatFormats(cursorPackage: CursorPackage): string {
     </section>
 
     <section class="catalog-grid" aria-live="polite">
-      <article v-for="cursorPackage in filteredPackages" :key="cursorPackage.id" class="cursor-card">
+      <article
+        v-for="(cursorPackage, index) in filteredPackages"
+        :key="cursorPackage.id"
+        v-reveal="Math.min(index, 8) * 45"
+        class="cursor-card"
+      >
         <div class="preview-panel">
-          <img
+          <LazyImage
             v-if="cursorPackage.preview"
             :src="cursorPackage.preview.imageUrl"
             :width="cursorPackage.preview.width"
             :height="cursorPackage.preview.height"
             :alt="`${cursorPackage.name} preview`"
+            variant="preview"
           />
           <div v-else class="preview-empty">
             <ImageOff :size="28" />
@@ -178,11 +238,12 @@ function formatFormats(cursorPackage: CursorPackage): string {
           <div v-if="cursorPackage.samples.length > 0" class="sample-strip">
             <figure v-for="sample in cursorPackage.samples" :key="`${cursorPackage.id}-${sample.role}-${sample.fileName}`">
               <span class="sample-image">
-                <img
+                <LazyImage
                   :src="sample.imageUrl"
                   :width="sample.width"
                   :height="sample.height"
                   :alt="`${cursorPackage.name} ${roleLabel(sample.role)}`"
+                  variant="sample"
                 />
               </span>
               <figcaption>
@@ -204,7 +265,7 @@ function formatFormats(cursorPackage: CursorPackage): string {
       </article>
     </section>
 
-    <section v-if="filteredPackages.length === 0" class="empty-state">
+    <section v-if="filteredPackages.length === 0" v-reveal class="empty-state">
       <ImageOff :size="32" />
       <p>没有匹配的指针包</p>
     </section>
