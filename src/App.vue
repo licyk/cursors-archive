@@ -5,9 +5,9 @@ import { Icon } from '@iconify/vue'
 import githubIcon from '@iconify-icons/simple-icons/github'
 import { Archive, CircleHelp, Download, ImageOff, MousePointer2, Search } from 'lucide-vue-next'
 import cursorCatalog from 'virtual:cursor-catalog'
-import LazyImage from './components/LazyImage.vue'
-import PlatformIcon from './components/PlatformIcon.vue'
-import type { CursorPackage, CursorPlatform, CursorSample } from './types/cursor'
+import LazyImage from '@/components/LazyImage.vue'
+import PlatformIcon from '@/components/PlatformIcon.vue'
+import type { CursorPackage, CursorPlatform, CursorSample } from '@/types/cursor'
 
 type PlatformFilter = CursorPlatform | 'all'
 type RevealElement = HTMLElement & {

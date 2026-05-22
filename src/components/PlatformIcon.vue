@@ -2,7 +2,7 @@
 import { Icon } from '@iconify/vue'
 import linuxIcon from '@iconify-icons/simple-icons/linux'
 import windowsIcon from '@iconify-icons/simple-icons/windows'
-import type { CursorPlatform } from '../types/cursor'
+import type { CursorPlatform } from '@/types/cursor'
 
 withDefaults(
   defineProps<{

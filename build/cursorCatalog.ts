@@ -4,14 +4,14 @@ import { createRequire } from 'node:module'
 import { mkdtemp, readdir, readFile, rm, stat, open } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import path from 'node:path'
-import type { CursorFormat, CursorPackage, CursorPlatform, CursorSample } from '../src/types/cursor'
+import type { CursorFormat, CursorPackage, CursorPlatform, CursorSample } from '@/types/cursor'
 import {
   choosePreviewImage,
   detectCursorFormat,
   encodeCursorImagePng,
   parseCursorBlob,
   type ParsedCursor,
-} from './cursorParser'
+} from '#build/cursorParser'
 
 export interface CatalogArchiveInput {
   platform: CursorPlatform

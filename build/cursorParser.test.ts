@@ -1,7 +1,7 @@
 import { Buffer } from 'node:buffer'
 import { describe, expect, it } from 'vitest'
 import { PNG } from 'pngjs'
-import { parseCursorBlob } from './cursorParser'
+import { parseCursorBlob } from '#build/cursorParser'
 
 describe('cursorParser', () => {
   it('parses a static CUR with a PNG payload', () => {

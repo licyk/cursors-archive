@@ -3,7 +3,7 @@ import { readFile, stat } from 'node:fs/promises'
 import type { IncomingMessage, ServerResponse } from 'node:http'
 import path from 'node:path'
 import type { Plugin, ResolvedConfig } from 'vite'
-import { generateCursorCatalog, type GeneratedCursorCatalog } from './cursorCatalog'
+import { generateCursorCatalog, type GeneratedCursorCatalog } from '#build/cursorCatalog'
 
 const VIRTUAL_MODULE_ID = 'virtual:cursor-catalog'
 const RESOLVED_VIRTUAL_MODULE_ID = `\0${VIRTUAL_MODULE_ID}`

@@ -1,7 +1,7 @@
 import { fileURLToPath } from 'node:url'
 import path from 'node:path'
 import { describe, expect, it } from 'vitest'
-import { generateCursorCatalog } from './cursorCatalog'
+import { generateCursorCatalog } from '#build/cursorCatalog'
 
 const root = fileURLToPath(new URL('../', import.meta.url))
 
