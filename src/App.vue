@@ -261,7 +261,7 @@ onBeforeUnmount(() => {
               Windows 指针包解压后，右键里面的 <code>.inf</code> 文件，然后点击安装。
             </p>
             <p>
-              Linux 指针包解压后，运行里面的 <code>install_currsor.sh</code> 脚本安装。
+              Linux 指针包解压后，运行里面的 <code>install_cursor.sh</code> 脚本安装。
             </p>
             <p>
               这些鼠标指针也可以使用 <code>ani2xcur-cli</code> 安装和转换。
