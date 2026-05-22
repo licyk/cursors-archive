@@ -26,6 +26,10 @@ const aspectStyle = computed(() => ({
   '--lazy-aspect': `${Math.max(props.width, 1)} / ${Math.max(props.height, 1)}`,
 }))
 
+const preloadRootMargin = computed(() =>
+  props.variant === 'preview' ? '720px 0px' : '520px 0px',
+)
+
 function disconnectObserver(): void {
   observer?.disconnect()
   observer = null
@@ -55,7 +59,7 @@ function observeImage(): void {
       }
     },
     {
-      rootMargin: '360px 0px',
+      rootMargin: preloadRootMargin.value,
       threshold: 0.01,
     },
   )

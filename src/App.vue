@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, onMounted, ref } from 'vue'
+import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import type { Directive } from 'vue'
 import { Icon } from '@iconify/vue'
 import githubIcon from '@iconify-icons/simple-icons/github'
@@ -14,9 +14,17 @@ type RevealElement = HTMLElement & {
   __cursorRevealCleanup?: () => void
 }
 
+const INITIAL_VISIBLE_PACKAGES = 16
+const VISIBLE_PACKAGE_BATCH = 12
+const LOAD_MORE_ROOT_MARGIN = 640
+
 const query = ref('')
 const activePlatform = ref<PlatformFilter>('all')
 const isReady = ref(false)
+const visibleLimit = ref(INITIAL_VISIBLE_PACKAGES)
+const loadMoreTrigger = ref<HTMLElement | null>(null)
+
+let loadMoreObserver: IntersectionObserver | null = null
 
 const packages = cursorCatalog as CursorPackage[]
 const platformFilters: Array<{ id: PlatformFilter; label: string }> = [
@@ -38,6 +46,23 @@ const filteredPackages = computed(() => {
         .includes(keyword)
     return matchesPlatform && matchesKeyword
   })
+})
+
+const visiblePackages = computed(() => filteredPackages.value.slice(0, visibleLimit.value))
+const hasMorePackages = computed(() => visibleLimit.value < filteredPackages.value.length)
+const loadedPackageCount = computed(() =>
+  Math.min(visibleLimit.value, filteredPackages.value.length),
+)
+const loadStateText = computed(() => {
+  if (filteredPackages.value.length === 0) {
+    return '没有匹配结果'
+  }
+
+  if (hasMorePackages.value) {
+    return `已加载 ${loadedPackageCount.value} / ${filteredPackages.value.length}`
+  }
+
+  return `已加载全部 ${filteredPackages.value.length} 个结果`
 })
 
 const activePlatformIndex = computed(() =>
@@ -82,6 +107,69 @@ function formatFormats(cursorPackage: CursorPackage): string {
   return cursorPackage.formats.length > 0 ? cursorPackage.formats.join(' / ') : 'unknown'
 }
 
+function disconnectLoadMoreObserver(): void {
+  loadMoreObserver?.disconnect()
+  loadMoreObserver = null
+}
+
+function loadMorePackages(): void {
+  if (!hasMorePackages.value) {
+    return
+  }
+
+  visibleLimit.value = Math.min(
+    visibleLimit.value + VISIBLE_PACKAGE_BATCH,
+    filteredPackages.value.length,
+  )
+}
+
+function isLoadMoreTriggerNearViewport(): boolean {
+  if (!loadMoreTrigger.value || typeof window === 'undefined') {
+    return false
+  }
+
+  const viewportHeight = window.innerHeight || document.documentElement.clientHeight
+  return loadMoreTrigger.value.getBoundingClientRect().top <= viewportHeight + LOAD_MORE_ROOT_MARGIN
+}
+
+function fillViewportWithBatches(): void {
+  if (!hasMorePackages.value || !isLoadMoreTriggerNearViewport()) {
+    return
+  }
+
+  loadMorePackages()
+  void nextTick(fillViewportWithBatches)
+}
+
+function observeLoadMoreTrigger(): void {
+  disconnectLoadMoreObserver()
+
+  if (!loadMoreTrigger.value || !hasMorePackages.value || typeof window === 'undefined') {
+    return
+  }
+
+  if (!('IntersectionObserver' in window)) {
+    loadMorePackages()
+    return
+  }
+
+  loadMoreObserver = new IntersectionObserver(
+    (entries) => {
+      if (!entries.some((entry) => entry.isIntersecting)) {
+        return
+      }
+
+      loadMorePackages()
+      void nextTick(fillViewportWithBatches)
+    },
+    {
+      rootMargin: `${LOAD_MORE_ROOT_MARGIN}px 0px`,
+      threshold: 0.01,
+    },
+  )
+  loadMoreObserver.observe(loadMoreTrigger.value)
+}
+
 const vReveal: Directive<RevealElement, number | undefined> = {
   mounted(element, binding) {
     const delay = Number(binding.value ?? 0)
@@ -120,10 +208,31 @@ const vReveal: Directive<RevealElement, number | undefined> = {
   },
 }
 
+watch(filteredPackages, () => {
+  visibleLimit.value = INITIAL_VISIBLE_PACKAGES
+  void nextTick(() => {
+    observeLoadMoreTrigger()
+    fillViewportWithBatches()
+  })
+})
+
+watch(hasMorePackages, () => {
+  void nextTick(observeLoadMoreTrigger)
+})
+
 onMounted(() => {
   requestAnimationFrame(() => {
     isReady.value = true
   })
+
+  void nextTick(() => {
+    observeLoadMoreTrigger()
+    fillViewportWithBatches()
+  })
+})
+
+onBeforeUnmount(() => {
+  disconnectLoadMoreObserver()
 })
 </script>
 
@@ -203,7 +312,7 @@ onMounted(() => {
 
     <section class="catalog-grid" aria-live="polite">
       <article
-        v-for="(cursorPackage, index) in filteredPackages"
+        v-for="(cursorPackage, index) in visiblePackages"
         :key="cursorPackage.id"
         v-reveal="Math.min(index, 8) * 45"
         class="cursor-card"
@@ -263,6 +372,14 @@ onMounted(() => {
           </a>
         </div>
       </article>
+    </section>
+
+    <section v-if="filteredPackages.length > 0" class="load-more-state" aria-live="polite">
+      <div v-if="hasMorePackages" ref="loadMoreTrigger" class="load-more-sentinel">
+        <span class="load-more-spinner" aria-hidden="true" />
+        <span>{{ loadStateText }}</span>
+      </div>
+      <p v-else class="load-more-complete">{{ loadStateText }}</p>
     </section>
 
     <section v-if="filteredPackages.length === 0" v-reveal class="empty-state">

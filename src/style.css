@@ -22,6 +22,14 @@
   -moz-osx-font-smoothing: grayscale;
 }
 
+html {
+  overflow-y: scroll;
+  scrollbar-gutter: stable;
+  scrollbar-color: color-mix(in srgb, var(--accent) 62%, var(--line-strong))
+    color-mix(in srgb, var(--bg) 88%, var(--surface));
+  scrollbar-width: thin;
+}
+
 * {
   box-sizing: border-box;
 }
@@ -29,6 +37,43 @@
 body {
   margin: 0;
   min-width: 320px;
+  overflow-x: clip;
+}
+
+::-webkit-scrollbar {
+  width: 14px;
+  height: 14px;
+}
+
+::-webkit-scrollbar-track {
+  background: color-mix(in srgb, var(--bg) 88%, var(--surface));
+}
+
+::-webkit-scrollbar-thumb {
+  min-height: 72px;
+  background:
+    linear-gradient(
+      180deg,
+      color-mix(in srgb, var(--accent) 82%, #ffffff),
+      var(--accent-strong)
+    );
+  background-clip: padding-box;
+  border: 3px solid color-mix(in srgb, var(--bg) 88%, var(--surface));
+  border-radius: 999px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background:
+    linear-gradient(
+      180deg,
+      color-mix(in srgb, var(--accent) 92%, #ffffff),
+      color-mix(in srgb, var(--accent-strong) 88%, #000000)
+    );
+  background-clip: padding-box;
+}
+
+::-webkit-scrollbar-corner {
+  background: var(--bg);
 }
 
 button,
@@ -714,6 +759,45 @@ figcaption small {
   color: var(--muted);
 }
 
+.load-more-state {
+  display: grid;
+  min-height: 74px;
+  place-items: center;
+  padding: 8px 0 22px;
+  color: var(--muted);
+  font-size: 13px;
+}
+
+.load-more-sentinel,
+.load-more-complete {
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+  min-height: 36px;
+  padding: 0 14px;
+  background: color-mix(in srgb, var(--surface) 78%, var(--accent-soft));
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  box-shadow: 0 10px 24px rgba(31, 37, 40, 0.06);
+}
+
+.load-more-sentinel {
+  color: var(--accent-strong);
+}
+
+.load-more-complete {
+  margin: 0;
+}
+
+.load-more-spinner {
+  width: 15px;
+  height: 15px;
+  border: 2px solid color-mix(in srgb, var(--accent) 16%, var(--line-strong));
+  border-top-color: var(--accent);
+  border-radius: 999px;
+  animation: load-spin 760ms linear infinite;
+}
+
 @keyframes panel-in {
   from {
     opacity: 0;
@@ -729,6 +813,12 @@ figcaption small {
 @keyframes lazy-shimmer {
   to {
     transform: translateX(100%);
+  }
+}
+
+@keyframes load-spin {
+  to {
+    transform: rotate(1turn);
   }
 }
 
