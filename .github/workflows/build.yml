@@ -1,0 +1,70 @@
+name: Build Cursors Archive
+
+on:
+  push:
+    branches:
+      - main # 默认分支
+  workflow_dispatch:
+
+jobs:
+  Build-Web-Tools:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout Repo # 载入仓库文件
+        uses: actions/checkout@v5
+
+      - name: Configure Timezone # 配置时区
+        run: |
+          sudo timedatectl set-timezone "Asia/Shanghai"
+
+      - name: Start Collecting Info # 统计信息
+        run: |
+          mkdir -p "${{ github.workspace }}/dist"
+          echo "# Deploy Info" > "${{ github.workspace }}/dist/README.md"
+          echo "- Deploy Time: \`$(date +'%Y-%m-%d %H:%M:%S')\`" >> "${{ github.workspace }}/dist/README.md"
+
+      - name: Use Bun # 配置 Bun
+        uses: oven-sh/setup-bun@v2
+
+      - name: Install Dependencies # 安装依赖
+        run: |
+          bun install
+
+      - name: Build # 构建网页
+        env:
+          VITE_BASE_PATH: /cursors-archive/
+        run: |
+          bun run build
+
+      - name: Configure Git # 配置 Git, 用于把网页推送到另一个项目上
+        env:
+          DEPLOY_PRI: ${{ secrets.DEPLOY_PRI }} # 这里就是刚刚配置的私钥了
+          GIT_USERNAME: ${{ github.repository_owner }} # Github 用户名, 这里用了 Actions 自带的变量
+          GIT_EMAIL: ${{ github.repository_owner }}@user.github.com # 邮箱, 可以写自己的邮箱
+        run: |
+          mkdir -p ~/.ssh/
+          echo "${DEPLOY_PRI}" > ~/.ssh/id_rsa
+          chmod 600 ~/.ssh/id_rsa
+          ssh-keyscan github.com >> ~/.ssh/known_hosts
+          git config --global user.name "${GIT_USERNAME}"
+          git config --global user.email "${GIT_EMAIL}"
+
+      - name: Collect Info # 统计信息
+        run: |
+          echo "- Bun Version: \`$(bun --version)\`" >> "${{ github.workspace }}/dist/README.md"
+          echo "- File Size: \`$(du -sh "${{ github.workspace }}/dist" | awk '{ print $1 }')\`" >> "${{ github.workspace }}/dist/README.md"
+
+      - name: Commit # 提交文档到 Git 仓库
+        env:
+          GIT_URL: 'git@github.com:licyk/cursors-archive.git' # 把它换成项目的地址, 注意要用 SSH 格式的
+        run: |
+          git -C "${{ github.workspace }}/dist" init
+          git -C "${{ github.workspace }}/dist" remote add origin "${GIT_URL}"
+          git -C "${{ github.workspace }}/dist" add -A
+          git -C "${{ github.workspace }}/dist" commit -m "Cursors archive update. Time: $(date +'%Y-%m-%d %H:%M:%S')"
+
+      - name: Push # 推送工具
+        run: |
+          git -C "${{ github.workspace }}/dist" push origin HEAD:gh-pages --force

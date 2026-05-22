@@ -1,6 +1,8 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue'
-import { Archive, Download, ImageOff, MousePointer2, Search } from 'lucide-vue-next'
+import { Icon } from '@iconify/vue'
+import githubIcon from '@iconify-icons/simple-icons/github'
+import { Archive, CircleHelp, Download, ImageOff, MousePointer2, Search } from 'lucide-vue-next'
 import cursorCatalog from 'virtual:cursor-catalog'
 import PlatformIcon from './components/PlatformIcon.vue'
 import type { CursorPackage, CursorPlatform, CursorSample } from './types/cursor'
@@ -85,6 +87,29 @@ function formatFormats(cursorPackage: CursorPackage): string {
       </div>
 
       <div class="tools">
+        <details class="usage-menu">
+          <summary>
+            <CircleHelp :size="17" aria-hidden="true" />
+            使用说明
+          </summary>
+          <div class="usage-panel">
+            <h2>安装方式</h2>
+            <p>
+              Windows 指针包解压后，右键里面的 <code>.inf</code> 文件，然后点击安装。
+            </p>
+            <p>
+              Linux 指针包解压后，运行里面的 <code>install_currsor.sh</code> 脚本安装。
+            </p>
+            <p>
+              这些鼠标指针也可以使用 <code>ani2xcur-cli</code> 安装和转换。
+            </p>
+            <a href="https://github.com/licyk/ani2xcur-cli" target="_blank" rel="noreferrer">
+              <Icon :icon="githubIcon" :width="16" :height="16" class="github-logo" aria-hidden="true" />
+              ani2xcur-cli
+            </a>
+          </div>
+        </details>
+
         <label class="search-field">
           <Search :size="18" aria-hidden="true" />
           <span class="sr-only">搜索</span>
