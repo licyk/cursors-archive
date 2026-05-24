@@ -3,7 +3,15 @@ import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import type { Directive } from 'vue'
 import { Icon } from '@iconify/vue'
 import githubIcon from '@iconify-icons/simple-icons/github'
-import { Archive, CircleHelp, Download, ImageOff, MousePointer2, Search } from 'lucide-vue-next'
+import {
+  Archive,
+  CircleHelp,
+  Download,
+  ExternalLink,
+  ImageOff,
+  MousePointer2,
+  Search,
+} from 'lucide-vue-next'
 import cursorCatalog from 'virtual:cursor-catalog'
 import LazyImage from '@/components/LazyImage.vue'
 import PlatformIcon from '@/components/PlatformIcon.vue'
@@ -21,10 +29,13 @@ const LOAD_MORE_ROOT_MARGIN = 640
 const query = ref('')
 const activePlatform = ref<PlatformFilter>('all')
 const isReady = ref(false)
+const isUsagePanelOpen = ref(false)
 const visibleLimit = ref(INITIAL_VISIBLE_PACKAGES)
 const loadMoreTrigger = ref<HTMLElement | null>(null)
+const usageMenu = ref<HTMLElement | null>(null)
 
 let loadMoreObserver: IntersectionObserver | null = null
+const usagePanelId = 'usage-panel'
 
 const packages = cursorCatalog as CursorPackage[]
 const platformFilters: Array<{ id: PlatformFilter; label: string }> = [
@@ -105,6 +116,32 @@ function formatSize(bytes: number): string {
 
 function formatFormats(cursorPackage: CursorPackage): string {
   return cursorPackage.formats.length > 0 ? cursorPackage.formats.join(' / ') : 'unknown'
+}
+
+function closeUsagePanel(): void {
+  isUsagePanelOpen.value = false
+}
+
+function toggleUsagePanel(): void {
+  isUsagePanelOpen.value = !isUsagePanelOpen.value
+}
+
+function handleDocumentPointerDown(event: PointerEvent): void {
+  if (!isUsagePanelOpen.value || !usageMenu.value) {
+    return
+  }
+
+  if (event.target instanceof Node && usageMenu.value.contains(event.target)) {
+    return
+  }
+
+  closeUsagePanel()
+}
+
+function handleDocumentKeydown(event: KeyboardEvent): void {
+  if (event.key === 'Escape') {
+    closeUsagePanel()
+  }
 }
 
 function disconnectLoadMoreObserver(): void {
@@ -221,6 +258,9 @@ watch(hasMorePackages, () => {
 })
 
 onMounted(() => {
+  document.addEventListener('pointerdown', handleDocumentPointerDown)
+  document.addEventListener('keydown', handleDocumentKeydown)
+
   requestAnimationFrame(() => {
     isReady.value = true
   })
@@ -232,6 +272,8 @@ onMounted(() => {
 })
 
 onBeforeUnmount(() => {
+  document.removeEventListener('pointerdown', handleDocumentPointerDown)
+  document.removeEventListener('keydown', handleDocumentKeydown)
   disconnectLoadMoreObserver()
 })
 </script>
@@ -250,28 +292,49 @@ onBeforeUnmount(() => {
       </div>
 
       <div class="tools">
-        <details class="usage-menu">
-          <summary>
+        <a class="blog-link" href="https://licyk.netlify.app" target="_blank" rel="noreferrer">
+          <ExternalLink :size="17" aria-hidden="true" />
+          博客
+        </a>
+
+        <div ref="usageMenu" class="usage-menu">
+          <button
+            class="usage-trigger"
+            type="button"
+            aria-haspopup="dialog"
+            :aria-controls="usagePanelId"
+            :aria-expanded="isUsagePanelOpen"
+            @click="toggleUsagePanel"
+          >
             <CircleHelp :size="17" aria-hidden="true" />
             使用说明
-          </summary>
-          <div class="usage-panel">
-            <h2>安装方式</h2>
-            <p>
-              Windows 指针包解压后，右键里面的 <code>.inf</code> 文件，然后点击安装。
-            </p>
-            <p>
-              Linux 指针包解压后，运行里面的 <code>install_cursor.sh</code> 脚本安装。
-            </p>
-            <p>
-              这些鼠标指针也可以使用 <code>ani2xcur-cli</code> 安装和转换。
-            </p>
-            <a href="https://github.com/licyk/ani2xcur-cli" target="_blank" rel="noreferrer">
-              <Icon :icon="githubIcon" :width="16" :height="16" class="github-logo" aria-hidden="true" />
-              ani2xcur-cli
-            </a>
-          </div>
-        </details>
+          </button>
+
+          <Transition name="usage-popover">
+            <div
+              v-if="isUsagePanelOpen"
+              :id="usagePanelId"
+              class="usage-panel"
+              role="dialog"
+              aria-label="使用说明"
+            >
+              <h2>安装方式</h2>
+              <p>
+                Windows 指针包解压后，右键里面的 <code>.inf</code> 文件，然后点击安装。
+              </p>
+              <p>
+                Linux 指针包解压后，运行里面的 <code>install_cursor.sh</code> 脚本安装。
+              </p>
+              <p>
+                这些鼠标指针也可以使用 <code>ani2xcur-cli</code> 安装和转换。
+              </p>
+              <a href="https://github.com/licyk/ani2xcur-cli" target="_blank" rel="noreferrer">
+                <Icon :icon="githubIcon" :width="16" :height="16" class="github-logo" aria-hidden="true" />
+                ani2xcur-cli
+              </a>
+            </div>
+          </Transition>
+        </div>
 
         <label class="search-field">
           <Search :size="18" aria-hidden="true" />
@@ -386,5 +449,12 @@ onBeforeUnmount(() => {
       <ImageOff :size="32" />
       <p>没有匹配的指针包</p>
     </section>
+
+    <footer class="site-footer">
+      <p class="source-note">鼠标指针收集于网络</p>
+      <p>
+        © 2026 <a href="https://github.com/licyk/" target="_blank" rel="noreferrer">licyk</a>
+      </p>
+    </footer>
   </main>
 </template>

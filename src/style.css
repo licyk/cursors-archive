@@ -189,15 +189,17 @@ h1 {
   flex: 0 0 auto;
 }
 
-.usage-menu summary {
+.blog-link,
+.usage-trigger {
   display: inline-flex;
   min-height: 42px;
   align-items: center;
   gap: 7px;
   padding: 0 13px;
   color: var(--accent-strong);
+  font: inherit;
   font-weight: 700;
-  list-style: none;
+  text-decoration: none;
   background: var(--surface);
   border: 1px solid var(--line);
   border-radius: 8px;
@@ -209,15 +211,21 @@ h1 {
     color 180ms ease;
 }
 
-.usage-menu summary::-webkit-details-marker {
-  display: none;
+.usage-trigger {
+  appearance: none;
 }
 
-.usage-menu[open] summary,
-.usage-menu summary:hover {
+.blog-link:hover,
+.usage-trigger[aria-expanded='true'],
+.usage-trigger:hover {
   border-color: var(--accent);
   box-shadow: 0 0 0 3px rgba(20, 108, 101, 0.12);
-  transform: translateY(-1px);
+  background: color-mix(in srgb, var(--surface) 86%, var(--accent-soft));
+}
+
+.blog-link:active,
+.usage-trigger:active {
+  transform: scale(0.98);
 }
 
 .usage-panel {
@@ -236,8 +244,23 @@ h1 {
   transform-origin: top right;
 }
 
-.usage-menu[open] .usage-panel {
-  animation: panel-in 180ms ease-out both;
+.usage-popover-enter-active,
+.usage-popover-leave-active {
+  transition:
+    opacity 180ms ease,
+    transform 180ms ease;
+}
+
+.usage-popover-enter-from,
+.usage-popover-leave-to {
+  opacity: 0;
+  transform: translateY(-6px) scale(0.98);
+}
+
+.usage-popover-enter-to,
+.usage-popover-leave-from {
+  opacity: 1;
+  transform: translateY(0) scale(1);
 }
 
 .usage-panel h2 {
@@ -275,12 +298,14 @@ h1 {
   text-decoration: none;
   transition:
     color 180ms ease,
-    transform 180ms ease;
+    text-decoration-color 180ms ease;
 }
 
 .usage-panel a:hover {
   color: var(--accent);
-  transform: translateX(2px);
+  text-decoration: underline;
+  text-decoration-thickness: 2px;
+  text-underline-offset: 4px;
 }
 
 .github-logo {
@@ -305,7 +330,7 @@ h1 {
 }
 
 .search-field:hover {
-  transform: translateY(-1px);
+  border-color: var(--line-strong);
 }
 
 .search-field:focus-within {
@@ -380,11 +405,10 @@ h1 {
 
 .segmented button:hover {
   color: var(--accent-strong);
-  transform: translateY(-1px);
 }
 
 .segmented button:active {
-  transform: translateY(0) scale(0.98);
+  transform: scale(0.98);
 }
 
 .segmented button.active {
@@ -744,7 +768,6 @@ figcaption small {
 .download-link:hover {
   background: var(--accent);
   box-shadow: 0 12px 24px rgba(12, 79, 85, 0.24);
-  transform: translateY(-2px);
 }
 
 .download-link:active {
@@ -798,16 +821,33 @@ figcaption small {
   animation: load-spin 760ms linear infinite;
 }
 
-@keyframes panel-in {
-  from {
-    opacity: 0;
-    transform: translateY(-6px) scale(0.98);
-  }
+.site-footer {
+  display: grid;
+  gap: 6px;
+  padding: 18px 0 4px;
+  color: var(--muted);
+  font-size: 14px;
+  text-align: center;
+}
 
-  to {
-    opacity: 1;
-    transform: translateY(0) scale(1);
-  }
+.source-note {
+  color: color-mix(in srgb, var(--muted) 88%, var(--text));
+}
+
+.site-footer a {
+  color: var(--accent-strong);
+  font-weight: 700;
+  text-decoration: none;
+  transition:
+    color 180ms ease,
+    text-decoration-color 180ms ease;
+}
+
+.site-footer a:hover {
+  color: var(--accent);
+  text-decoration: underline;
+  text-decoration-thickness: 2px;
+  text-underline-offset: 4px;
 }
 
 @keyframes lazy-shimmer {
@@ -895,8 +935,13 @@ figcaption small {
 
   .cursor-card.is-visible:hover,
   .download-link:hover,
+  .download-link:active,
   .segmented button:hover,
-  .usage-menu summary:hover,
+  .segmented button:active,
+  .blog-link:hover,
+  .blog-link:active,
+  .usage-trigger:hover,
+  .usage-trigger:active,
   .search-field:hover,
   .stats-row > div:hover {
     transform: none;
